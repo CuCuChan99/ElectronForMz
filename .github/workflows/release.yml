@@ -37,7 +37,7 @@ jobs:
       - name: Build
         env:
           GH_TOKEN: ${{ secrets.SECRET }}
-        run: npx --no-install electron-builder --config .electron-builder.config.js
+        run: npx --no-install electron-builder --config .electron-builder.config.js --publish never
 
       - name: Remove unpacked directories
         run: |
