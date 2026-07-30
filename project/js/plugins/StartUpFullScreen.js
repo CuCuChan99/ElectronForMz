@@ -6,6 +6,7 @@
 // http://opensource.org/licenses/mit-license.php
 // ----------------------------------------------------------------------------
 // Version
+// 1.7.0 2025/11/21 オプションリセットプラグイン使用時、即時反映機能を共存できる機能を追加
 // 1.6.1 2023/08/05 ElectronForMz.jsとの順序を定義するアノテーションを追加
 // 1.6.0 2023/07/23 オプション変更時にフルスクリーン状態を即時反映させる機能を追加
 // 1.5.0 2023/06/01 ElectronForMz.jsに対応
@@ -24,12 +25,72 @@
 //=============================================================================
 
 /*:
+ * @plugindesc Full Screen Startup
+ * @target MZ
+ * @url https://github.com/triacontane/RPGMakerMV/tree/mz_master/StartUpFullScreen.js
+ * @base PluginCommonBase
+ * @orderAfter PluginCommonBase
+ * @orderAfter ElectronForMz
+ * @orderAfter OptionReset
+ * @author triacontane
+ *
+ * @param Shutdown
+ * @text Shutdown
+ * @desc The name of the shutdown item to be added to the title screen.
+ * It is displayed only when running in the local environment.
+ * @default Shutdown
+ *
+ * @param DefaultFullScreen
+ * @text Starts up in full screen by default
+ * @desc If enabled, it will start full screen by default.
+ * @default false
+ * @type boolean
+ *
+ * @param Immediate
+ * @text immediate reflection
+ * @desc If enabled, the full screen state will be changed on the fly when the startup options are changed in the options.
+ * @default false
+ * @type boolean
+ *
+ * @param StartUpFullScreen
+ * @text full screen startup
+ * @desc The name of the item to be activated in all screens to be added to the options screen.
+ * It is displayed only when running in the local environment.
+ * @default Full Screen Startup
+ *
+ * @param UseGameEnd
+ * @text Added to Game End command
+ * @desc Add a shutdown item to the "Game End" command.
+ * @default true
+ * @type boolean
+ *
+ * @help StartUpFullScreen.js
+ *
+ * Add "Full Screen Startup" to the options screen.
+ * If enabled, the game will launch in full screen.
+ * Also add "Shutdown" to the title screen.
+ *
+ * This plugin is only valid when run in a local environment.
+ * When the event test is executed, tempo is prioritized and full-screening is disabled.
+ *
+ * You need the base plugin "PluginCommonBase.js" to use this plugin.
+ * The "PluginCommonBase.js" is stored in the following folder under the installation folder of RPG Maker MZ.
+ * dlc/BasicResources/plugins/official
+ *
+ * User Agreement:
+ *  You may alter or redistribute the plugin without permission. There are no restrictions on usage format
+ *  (such as adult- or commercial-use only).
+ *  This plugin is now all yours.
+ */
+
+/*:ja
  * @plugindesc フルスクリーンで起動プラグイン
  * @target MZ
  * @url https://github.com/triacontane/RPGMakerMV/tree/mz_master/StartUpFullScreen.js
  * @base PluginCommonBase
  * @orderAfter PluginCommonBase
  * @orderAfter ElectronForMz
+ * @orderAfter OptionReset
  * @author トリアコンタン
  *
  * @param Shutdown
@@ -80,6 +141,67 @@
  *  作者に無断で改変、再配布が可能で、利用形態（商用、18禁利用等）
  *  についても制限はありません。
  *  このプラグインはもうあなたのものです。
+ */
+
+/*:zh
+ * @plugindesc 启动时自动全屏显示的插件
+ * @target MZ
+ * @url https://github.com/triacontane/RPGMakerMV/tree/mz_master/StartUpFullScreen.js
+ * @base PluginCommonBase
+ * @orderAfter PluginCommonBase
+ * @orderAfter ElectronForMz
+ * @orderAfter OptionReset
+ * @author triacontane
+ *
+ * @param Shutdown
+ * @text 关闭游戏
+ * @desc 在标题画面中添加“关闭游戏”选项。仅在本地运行环境下显示。
+ * @default 关闭游戏
+ *
+ * @param DefaultFullScreen
+ * @text 默认全屏启动
+ * @desc 若启用，则游戏启动时默认以全屏模式运行。
+ * @default false
+ * @type boolean
+ *
+ * @param Immediate
+ * @text 即时生效
+ * @desc 若启用，则在“选项”中更改全屏设置时立即生效。
+ * @default false
+ * @type boolean
+ *
+ * @param StartUpFullScreen
+ * @text 启动时全屏
+ * @desc 在选项菜单中添加“启动时全屏”选项。仅在本地运行环境下显示。
+ * @default 启动时全屏
+ *
+ * @param UseGameEnd
+ * @text 添加到“游戏结束”菜单
+ * @desc 在“游戏结束”菜单中添加“关闭游戏”选项。
+ * @default true
+ * @type boolean
+ *
+ * @help StartUpFullScreen.js
+ *
+ * 本插件在选项菜单中添加“启动时全屏”选项。
+ * 启用后，游戏将在启动时自动以全屏模式运行。
+ * 同时会在标题画面中添加“关闭游戏”功能。
+ *
+ * 【功能说明】
+ * - 仅在本地运行环境中有效。
+ * - 事件测试执行时将禁用全屏功能，以优先保证运行速度。
+ * - 若启用“即时生效”选项，当玩家在选项菜单中修改全屏设置时，
+ *   游戏画面会立即切换显示模式。
+ *
+ * 【必要插件】
+ * 运行此插件需要官方基础插件「PluginCommonBase.js」。
+ * 该插件位于 RPG Maker MZ 安装目录下：
+ * `dlc/BasicResources/plugins/official`
+ *
+ * 【许可证】
+ * 本插件基于 MIT 许可证发布。
+ * 您可以自由修改、再分发，或将其用于任何形式的作品（包括商业和成人游戏）。
+ * http://opensource.org/licenses/mit-license.php
  */
 
 function Scene_Terminate() {
@@ -293,6 +415,18 @@ function Scene_Terminate() {
         this.addCommand(param.StartUpFullScreen, 'startUpFullScreen');
     };
 
+    const _ConfigManager_resetData = ConfigManager.resetData;
+    ConfigManager.resetData = function() {
+        _ConfigManager_resetData.apply(this, arguments);
+        if (param.Immediate) {
+            if (this.startUpFullScreen) {
+                Graphics._requestFullScreen();
+            } else {
+                Graphics._cancelFullScreen();
+            }
+        }
+    };
+
     //=============================================================================
     // Scene_Terminate
     //  ゲームを終了します。
@@ -304,4 +438,3 @@ function Scene_Terminate() {
         SceneManager.terminate();
     };
 })();
-
