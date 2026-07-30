@@ -26,7 +26,7 @@ module.exports = async function () {
             icon: 'project/icon/icon-electron.png'
         },
         mac: {
-            target: 'portable',
+            target: 'dmg',
             category: 'Games',
             icon: 'project/icon/icon-electron-mac.png'
         },
